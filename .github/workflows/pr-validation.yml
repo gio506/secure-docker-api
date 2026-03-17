@@ -1,15 +1,26 @@
 name: pr-validation
 
 on:
+  push:
+    branches:
+      - dev
   pull_request:
     branches:
       - dev
       - main
   workflow_call:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: secure-docker-api-validation-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -25,6 +36,7 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     needs: lint
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -48,6 +60,7 @@ jobs:
   docker-build:
     runs-on: ubuntu-latest
     needs: unit-tests
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Build image
@@ -60,6 +73,7 @@ jobs:
   container-smoke-tests:
     runs-on: ubuntu-latest
     needs: docker-build
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Start stack
@@ -92,6 +106,7 @@ jobs:
   image-scan:
     runs-on: ubuntu-latest
     needs: container-smoke-tests
+    timeout-minutes: 20
     permissions:
       security-events: write
       contents: read
