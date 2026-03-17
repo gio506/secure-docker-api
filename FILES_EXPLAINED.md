@@ -20,14 +20,23 @@
 - `scripts/smoke-test.ps1`: PowerShell smoke test for the running API.
 - `scripts/local-validate.sh`: local all-in-one validation helper.
 - `scripts/validate-json.py`: validates smoke test response payload values.
-- `.github/workflows/pr-validation.yml`: PR pipeline for `dev` and `main`.
+- `scripts/create-release-manifest.py`: writes release metadata used by the prod promotion flow.
+- `.github/workflows/pr-validation.yml`: reusable validation workflow shared by dev, main, and prod entry workflows.
+- `.github/workflows/dev-validation.yml`: automatic validation entry workflow for the dev branch.
+- `.github/workflows/protected-main-validation.yml`: approval-gated validation workflow for the main branch.
 - `.github/workflows/release-promotion.yml`: release workflow for `main` and protected `prod`.
+- `.github/workflows/protected-prod-validation.yml`: approval-gated validation workflow for the prod branch.
 - `.github/PULL_REQUEST_TEMPLATE.md`: PR structure with validation and rollback notes.
+- `.github/CODEOWNERS`: review ownership for protected branches.
 - `.pre-commit-config.yaml`: optional local hooks for lint and tests.
 - `docs/architecture.md`: architecture and environment summary.
 - `docs/developer-workflow.md`: daily branch workflow and validation expectations.
 - `docs/release-flow.md`: promotion model and GitHub settings guidance.
+- `docs/release-checklist.md`: final release checklist for `main -> prod` promotion.
+- `docs/production-promotion.md`: protected environment and approval guidance for prod.
 - `docs/rollback.md`: rollback procedure and evidence checklist.
+- `docs/security-notes.md`: image scan handling and secret hygiene notes.
 - `docs/troubleshooting.md`: common failure scenarios and response steps.
 - `README.md`: main project guide, setup, validation, and repo map.
 - `CHEATSHEET.md`: quick commands for setup and validation.
+- `SECURITY.md`: reporting and handling guidance for security issues.

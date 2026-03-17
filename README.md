@@ -4,7 +4,7 @@ Secure Dockerized API with branch-based delivery flow, smoke tests, and image sc
 
 ## Overview
 
-`secure-docker-api` is a small Flask service built to demonstrate an intermediate DevOps workflow from a greenfield repository. The repo focuses on practical packaging, hardening, validation, and promotion through `dev`, `main`, and `prod`. The `dev` branch extends the stable baseline with stronger engineering checks and better day-to-day workflow support.
+`secure-docker-api` is a small Flask service built to demonstrate an intermediate DevOps workflow from a greenfield repository. The repo focuses on practical packaging, hardening, validation, and promotion through `dev`, `main`, and `prod`. The `prod` branch is the final release-grade state with stronger promotion governance, release documentation, and ownership/security guidance.
 
 ## Architecture
 
@@ -50,7 +50,7 @@ Promotion path: `feature/* -> dev -> main -> prod`
 
 ## CI/CD Flow
 
-PR validation on `dev` and `main` runs these stages:
+Validation stages are reused across all environments:
 
 1. code lint
 2. unit tests
@@ -58,13 +58,20 @@ PR validation on `dev` and `main` runs these stages:
 4. container smoke tests
 5. image scan
 
-Promotion from `main` uses the release workflow to rerun validation, package a release artifact, and pause at the protected `prod` environment before the `main -> prod` PR merge.
+Branch behavior:
 
-The `dev` branch additionally stores:
+- `dev`: automatic validation on push and PRs, using the `dev` environment
+- `main`: approval-gated validation before protected checks start
+- `prod`: approval-gated validation plus protected release flow
+
+Promotion from `main` uses the release workflow to rerun validation with `main` environment values, package a release artifact, and pause at the protected `prod` environment before the `main -> prod` PR merge.
+
+The `prod` branch additionally stores:
 
 - pytest XML reports
 - smoke test JSON responses
 - build metadata linked to the commit SHA
+- release manifest metadata for audit and rollback
 
 ## Rollback
 
@@ -79,6 +86,9 @@ Rollback is documented in [docs/rollback.md](docs/rollback.md). Minimum rollback
 Use [docs/troubleshooting.md](docs/troubleshooting.md) for common startup, readiness, and image scan failures.
 
 See [docs/developer-workflow.md](docs/developer-workflow.md) for the branch-specific engineering workflow on `dev`.
+See [docs/release-checklist.md](docs/release-checklist.md), [docs/production-promotion.md](docs/production-promotion.md), and [docs/security-notes.md](docs/security-notes.md) for the final `prod` branch operating model.
+
+On `prod`, protected validation requires GitHub Environment approval before checks run.
 
 ## Repo Map
 
@@ -88,7 +98,11 @@ See [docs/developer-workflow.md](docs/developer-workflow.md) for the branch-spec
 - `artifacts/`: generated local validation outputs such as smoke responses and test reports
 - `docs/`: architecture, release, rollback, and troubleshooting notes
 - `.github/workflows/`: CI and release automation
+- `.github/workflows/dev-validation.yml`: automatic validation entry workflow for the `dev` branch
+- `.github/workflows/protected-main-validation.yml`: manual-gated validation for the protected `main` branch
+- `.github/workflows/protected-prod-validation.yml`: manual-gated validation for the protected `prod` branch
 - `.github/PULL_REQUEST_TEMPLATE.md`: PR checklist with rollback notes
+- `.github/CODEOWNERS`: ownership guidance for review and release approval
 - `.pre-commit-config.yaml`: optional local hooks for lint and tests
 - `.env.dev.example`: local development environment example
 - `.env.main.example`: stable integration environment example
@@ -102,6 +116,7 @@ See [docs/developer-workflow.md](docs/developer-workflow.md) for the branch-spec
 - `pyproject.toml`: Ruff and pytest configuration
 - `CHEATSHEET.md`: quick command reference
 - `FILES_EXPLAINED.md`: file-by-file purpose reference
+- `SECURITY.md`: vulnerability handling and secret safety notes
 
 ## Required GitHub Branch Protections
 
