@@ -4,7 +4,7 @@ Secure Dockerized API with branch-based delivery flow, smoke tests, and image sc
 
 ## Overview
 
-`secure-docker-api` is a small Flask service built to demonstrate an intermediate DevOps workflow from a greenfield repository. The repo focuses on practical packaging, hardening, validation, and promotion through `dev`, `main`, and `prod`. The `dev` branch extends the stable baseline with stronger engineering checks and better day-to-day workflow support.
+`secure-docker-api` is a small Flask service built to demonstrate an intermediate DevOps workflow from a greenfield repository. The repo focuses on practical packaging, hardening, validation, and promotion through `dev`, `main`, and `prod`. The `prod` branch is the final release-grade state with stronger promotion governance, release documentation, and ownership/security guidance.
 
 ## Architecture
 
@@ -60,11 +60,12 @@ PR validation on `dev` and `main` runs these stages:
 
 Promotion from `main` uses the release workflow to rerun validation, package a release artifact, and pause at the protected `prod` environment before the `main -> prod` PR merge.
 
-The `dev` branch additionally stores:
+The `prod` branch additionally stores:
 
 - pytest XML reports
 - smoke test JSON responses
 - build metadata linked to the commit SHA
+- release manifest metadata for audit and rollback
 
 ## Rollback
 
@@ -79,6 +80,7 @@ Rollback is documented in [docs/rollback.md](docs/rollback.md). Minimum rollback
 Use [docs/troubleshooting.md](docs/troubleshooting.md) for common startup, readiness, and image scan failures.
 
 See [docs/developer-workflow.md](docs/developer-workflow.md) for the branch-specific engineering workflow on `dev`.
+See [docs/release-checklist.md](docs/release-checklist.md), [docs/production-promotion.md](docs/production-promotion.md), and [docs/security-notes.md](docs/security-notes.md) for the final `prod` branch operating model.
 
 ## Repo Map
 
@@ -89,6 +91,7 @@ See [docs/developer-workflow.md](docs/developer-workflow.md) for the branch-spec
 - `docs/`: architecture, release, rollback, and troubleshooting notes
 - `.github/workflows/`: CI and release automation
 - `.github/PULL_REQUEST_TEMPLATE.md`: PR checklist with rollback notes
+- `.github/CODEOWNERS`: ownership guidance for review and release approval
 - `.pre-commit-config.yaml`: optional local hooks for lint and tests
 - `.env.dev.example`: local development environment example
 - `.env.main.example`: stable integration environment example
@@ -101,6 +104,7 @@ See [docs/developer-workflow.md](docs/developer-workflow.md) for the branch-spec
 - `pyproject.toml`: Ruff and pytest configuration
 - `CHEATSHEET.md`: quick command reference
 - `FILES_EXPLAINED.md`: file-by-file purpose reference
+- `SECURITY.md`: vulnerability handling and secret safety notes
 
 ## Required GitHub Branch Protections
 

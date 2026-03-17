@@ -4,7 +4,7 @@ COMPOSE ?= docker compose
 BUILD_DATE ?= dev-build
 VCS_REF ?= local
 
-.PHONY: lint test build run down clean smoke validate scan
+.PHONY: lint test build run down clean smoke validate scan release-manifest
 
 lint:
 	$(PYTHON) -m ruff check .
@@ -29,6 +29,9 @@ validate:
 
 scan:
 	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image $(IMAGE)
+
+release-manifest:
+	$(PYTHON) scripts/create-release-manifest.py artifacts/release-manifest.json
 
 clean:
 	$(COMPOSE) down --remove-orphans --volumes

@@ -41,6 +41,7 @@ make run
 make down
 make clean
 make validate
+make release-manifest
 ```
 
 ## Branch flow

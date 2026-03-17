@@ -6,11 +6,18 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: secure-docker-api-prod-release
+  cancel-in-progress: false
+
 jobs:
   release-summary:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
       - name: Build release notes snippet
         run: |
           {
@@ -20,6 +27,15 @@ jobs:
             echo "- Commit: $GITHUB_SHA"
             echo "- Reminder: prod promotion requires manual approval and rollback notes."
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Generate release manifest
+        run: |
+          mkdir -p artifacts
+          python scripts/create-release-manifest.py artifacts/release-manifest.json
+      - name: Upload release manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: secure-docker-api-release-manifest
+          path: artifacts/release-manifest.json
 
   validate-before-promotion:
     uses: ./.github/workflows/pr-validation.yml
@@ -29,10 +45,14 @@ jobs:
     needs: validate-before-promotion
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
       - name: Create artifact bundle
         run: |
           mkdir -p artifacts
           tar -czf artifacts/secure-docker-api-${GITHUB_SHA}.tar.gz app Dockerfile docker-compose.yml requirements.txt
+          python scripts/create-release-manifest.py artifacts/release-manifest.json
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
