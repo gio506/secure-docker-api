@@ -50,7 +50,7 @@ Promotion path: `feature/* -> dev -> main -> prod`
 
 ## CI/CD Flow
 
-PR validation on `dev` and `main` runs these stages:
+Validation stages are reused across all environments:
 
 1. code lint
 2. unit tests
@@ -58,7 +58,13 @@ PR validation on `dev` and `main` runs these stages:
 4. container smoke tests
 5. image scan
 
-Promotion from `main` uses the release workflow to rerun validation, package a release artifact, and pause at the protected `prod` environment before the `main -> prod` PR merge.
+Branch behavior:
+
+- `dev`: automatic validation on push and PRs, using the `dev` environment
+- `main`: approval-gated validation before protected checks start
+- `prod`: approval-gated validation plus protected release flow
+
+Promotion from `main` uses the release workflow to rerun validation with `main` environment values, package a release artifact, and pause at the protected `prod` environment before the `main -> prod` PR merge.
 
 The `prod` branch additionally stores:
 
@@ -92,6 +98,8 @@ On `prod`, protected validation requires GitHub Environment approval before chec
 - `artifacts/`: generated local validation outputs such as smoke responses and test reports
 - `docs/`: architecture, release, rollback, and troubleshooting notes
 - `.github/workflows/`: CI and release automation
+- `.github/workflows/dev-validation.yml`: automatic validation entry workflow for the `dev` branch
+- `.github/workflows/protected-main-validation.yml`: manual-gated validation for the protected `main` branch
 - `.github/workflows/protected-prod-validation.yml`: manual-gated validation for the protected `prod` branch
 - `.github/PULL_REQUEST_TEMPLATE.md`: PR checklist with rollback notes
 - `.github/CODEOWNERS`: ownership guidance for review and release approval

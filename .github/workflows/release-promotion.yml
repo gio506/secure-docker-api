@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ vars.PYTHON_VERSION || '3.11' }}
       - name: Build release notes snippet
         run: |
           {
@@ -44,6 +44,9 @@ jobs:
 
   validate-before-promotion:
     uses: ./.github/workflows/pr-validation.yml
+    with:
+      environment_name: main
+      env_file: .env.main.example
 
   publish-release-artifact:
     runs-on: ubuntu-latest
@@ -54,7 +57,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ vars.PYTHON_VERSION || '3.11' }}
       - name: Create artifact bundle
         run: |
           mkdir -p artifacts

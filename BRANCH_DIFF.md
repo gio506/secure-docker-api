@@ -62,9 +62,9 @@ This repository uses three long-lived branches with increasing maturity:
 
 | Branch | Trigger style |
 |---|---|
-| `dev` | runs automatically on push to `dev` |
-| `main` | requires approval through the protected `main` environment before protected validation starts |
-| `prod` | requires approval through the protected `prod` environment before protected validation starts |
+| `dev` | `dev-validation.yml` runs automatically on push and PRs to `dev` |
+| `main` | `protected-main-validation.yml` requires approval through the protected `main` environment before checks start |
+| `prod` | `protected-prod-validation.yml` requires approval through the protected `prod` environment before checks start |
 
 ## Recommended Promotion Path
 

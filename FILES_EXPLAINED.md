@@ -21,7 +21,9 @@
 - `scripts/local-validate.sh`: local all-in-one validation helper.
 - `scripts/validate-json.py`: validates smoke test response payload values.
 - `scripts/create-release-manifest.py`: writes release metadata used by the prod promotion flow.
-- `.github/workflows/pr-validation.yml`: PR pipeline for `dev` and `main`.
+- `.github/workflows/pr-validation.yml`: reusable validation workflow shared by dev, main, and prod entry workflows.
+- `.github/workflows/dev-validation.yml`: automatic validation entry workflow for the dev branch.
+- `.github/workflows/protected-main-validation.yml`: approval-gated validation workflow for the main branch.
 - `.github/workflows/release-promotion.yml`: release workflow for `main` and protected `prod`.
 - `.github/workflows/protected-prod-validation.yml`: approval-gated validation workflow for the prod branch.
 - `.github/PULL_REQUEST_TEMPLATE.md`: PR structure with validation and rollback notes.
