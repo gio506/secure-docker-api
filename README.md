@@ -95,3 +95,4 @@ Use [docs/troubleshooting.md](docs/troubleshooting.md) for common startup, readi
 - Require pull requests and passing status checks
 - Require rollback notes in promotion PRs
 - Configure `prod` environment approval in GitHub before using the release workflow
+- Configure a protected `main` environment if you want approval before main branch validation starts

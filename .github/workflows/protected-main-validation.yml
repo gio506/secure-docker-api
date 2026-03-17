@@ -1,0 +1,30 @@
+name: protected-main-validation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: secure-docker-api-main-protected-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  approval-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: main
+    steps:
+      - name: Protected branch approval
+        run: echo "Main validation approved. Starting protected checks."
+
+  protected-checks:
+    needs: approval-gate
+    uses: ./.github/workflows/pr-validation.yml
