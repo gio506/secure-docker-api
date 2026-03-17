@@ -1,0 +1,30 @@
+name: protected-prod-validation
+
+on:
+  push:
+    branches:
+      - prod
+  pull_request:
+    branches:
+      - prod
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: secure-docker-api-prod-protected-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  approval-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: prod
+    steps:
+      - name: Protected branch approval
+        run: echo "Prod validation approved. Starting protected checks."
+
+  protected-checks:
+    needs: approval-gate
+    uses: ./.github/workflows/pr-validation.yml

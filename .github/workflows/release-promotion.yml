@@ -10,9 +10,14 @@ concurrency:
   group: secure-docker-api-prod-release
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   release-summary:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: main
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -43,6 +48,8 @@ jobs:
   publish-release-artifact:
     runs-on: ubuntu-latest
     needs: validate-before-promotion
+    timeout-minutes: 15
+    environment: prod
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -62,6 +69,7 @@ jobs:
   prod-approval-note:
     runs-on: ubuntu-latest
     needs: publish-release-artifact
+    timeout-minutes: 10
     environment: prod
     steps:
       - name: Manual promotion reminder

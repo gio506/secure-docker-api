@@ -82,6 +82,8 @@ Use [docs/troubleshooting.md](docs/troubleshooting.md) for common startup, readi
 See [docs/developer-workflow.md](docs/developer-workflow.md) for the branch-specific engineering workflow on `dev`.
 See [docs/release-checklist.md](docs/release-checklist.md), [docs/production-promotion.md](docs/production-promotion.md), and [docs/security-notes.md](docs/security-notes.md) for the final `prod` branch operating model.
 
+On `prod`, protected validation requires GitHub Environment approval before checks run.
+
 ## Repo Map
 
 - `app/`: Flask application source and runtime config helpers
@@ -90,6 +92,7 @@ See [docs/release-checklist.md](docs/release-checklist.md), [docs/production-pro
 - `artifacts/`: generated local validation outputs such as smoke responses and test reports
 - `docs/`: architecture, release, rollback, and troubleshooting notes
 - `.github/workflows/`: CI and release automation
+- `.github/workflows/protected-prod-validation.yml`: manual-gated validation for the protected `prod` branch
 - `.github/PULL_REQUEST_TEMPLATE.md`: PR checklist with rollback notes
 - `.github/CODEOWNERS`: ownership guidance for review and release approval
 - `.pre-commit-config.yaml`: optional local hooks for lint and tests

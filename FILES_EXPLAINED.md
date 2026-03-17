@@ -23,6 +23,7 @@
 - `scripts/create-release-manifest.py`: writes release metadata used by the prod promotion flow.
 - `.github/workflows/pr-validation.yml`: PR pipeline for `dev` and `main`.
 - `.github/workflows/release-promotion.yml`: release workflow for `main` and protected `prod`.
+- `.github/workflows/protected-prod-validation.yml`: approval-gated validation workflow for the prod branch.
 - `.github/PULL_REQUEST_TEMPLATE.md`: PR structure with validation and rollback notes.
 - `.github/CODEOWNERS`: review ownership for protected branches.
 - `.pre-commit-config.yaml`: optional local hooks for lint and tests.
