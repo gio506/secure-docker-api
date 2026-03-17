@@ -35,6 +35,7 @@ RUN addgroup --system appgroup \
 
 COPY --from=builder /opt/venv /opt/venv
 COPY app ./app
+COPY gunicorn.conf.py ./
 
 RUN chown -R appuser:appgroup /app
 
@@ -45,4 +46,4 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD curl --fail http://127.0.0.1:8080/health || exit 1
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app.main:app"]
+CMD ["gunicorn", "--config", "gunicorn.conf.py", "app.main:app"]

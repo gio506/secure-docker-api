@@ -50,3 +50,19 @@ def test_default_env_is_dev(client):
 
     assert payload["environment"] == "dev"
     assert payload["version"] == "0.1.0"
+
+
+def test_invalid_env_falls_back_to_dev(client, monkeypatch):
+    monkeypatch.setenv("APP_ENV", "qa")
+
+    response = client.get("/version")
+
+    assert response.get_json()["environment"] == "dev"
+
+
+def test_invalid_port_falls_back_to_default(monkeypatch):
+    from app.config import get_settings
+
+    monkeypatch.setenv("APP_PORT", "invalid")
+
+    assert get_settings().app_port == 8080
