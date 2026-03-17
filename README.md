@@ -4,7 +4,7 @@ Secure Dockerized API with branch-based delivery flow, smoke tests, and image sc
 
 ## Overview
 
-`secure-docker-api` is a small Flask service built to demonstrate an intermediate DevOps workflow from a greenfield repository. The repo focuses on practical packaging, hardening, validation, and promotion through `dev`, `main`, and `prod`.
+`secure-docker-api` is a small Flask service built to demonstrate an intermediate DevOps workflow from a greenfield repository. The repo focuses on practical packaging, hardening, validation, and promotion through `dev`, `main`, and `prod`. The `prod` branch is the final release-grade state with stronger promotion governance, release documentation, and ownership/security guidance.
 
 ## Architecture
 
@@ -13,6 +13,7 @@ Secure Dockerized API with branch-based delivery flow, smoke tests, and image sc
 - Non-root runtime container
 - Docker Compose for local validation
 - GitHub Actions for PR validation and release promotion
+- Build metadata captured in image labels and `/version`
 
 See [docs/architecture.md](docs/architecture.md) for the detailed view.
 
@@ -31,6 +32,7 @@ Promotion path: `feature/* -> dev -> main -> prod`
 3. Run `python -m pytest` and `python -m ruff check .`.
 4. Build locally with `docker build -t secure-docker-api:local .`.
 5. Start the stack with `docker compose --env-file .env.dev.example up --build -d`.
+6. Use `./scripts/local-validate.sh` before opening PRs into `dev`.
 
 ## Validation Steps
 
@@ -43,11 +45,12 @@ Promotion path: `feature/* -> dev -> main -> prod`
    - `curl http://127.0.0.1:8080/ready`
    - `curl http://127.0.0.1:8080/version`
 6. Run smoke script: `./scripts/smoke-test.sh` or `powershell -File .\scripts\smoke-test.ps1`
-7. Stop the stack: `docker compose down --remove-orphans`
+7. Review generated validation artifacts under `artifacts/`
+8. Stop the stack: `docker compose down --remove-orphans`
 
 ## CI/CD Flow
 
-PR validation on `dev` and `main` runs these stages:
+Validation stages are reused across all environments:
 
 1. code lint
 2. unit tests
@@ -55,7 +58,20 @@ PR validation on `dev` and `main` runs these stages:
 4. container smoke tests
 5. image scan
 
-Promotion from `main` uses the release workflow to rerun validation, package a release artifact, and pause at the protected `prod` environment before the `main -> prod` PR merge.
+Branch behavior:
+
+- `dev`: automatic validation on push and PRs, using the `dev` environment
+- `main`: approval-gated validation before protected checks start
+- `prod`: approval-gated validation plus protected release flow
+
+Promotion from `main` uses the release workflow to rerun validation with `main` environment values, package a release artifact, and pause at the protected `prod` environment before the `main -> prod` PR merge.
+
+The `prod` branch additionally stores:
+
+- pytest XML reports
+- smoke test JSON responses
+- build metadata linked to the commit SHA
+- release manifest metadata for audit and rollback
 
 ## Rollback
 
@@ -69,13 +85,25 @@ Rollback is documented in [docs/rollback.md](docs/rollback.md). Minimum rollback
 
 Use [docs/troubleshooting.md](docs/troubleshooting.md) for common startup, readiness, and image scan failures.
 
+See [docs/developer-workflow.md](docs/developer-workflow.md) for the branch-specific engineering workflow on `dev`.
+See [docs/release-checklist.md](docs/release-checklist.md), [docs/production-promotion.md](docs/production-promotion.md), and [docs/security-notes.md](docs/security-notes.md) for the final `prod` branch operating model.
+
+On `prod`, protected validation requires GitHub Environment approval before checks run.
+
 ## Repo Map
 
 - `app/`: Flask application source and runtime config helpers
 - `tests/`: endpoint and behavior tests
 - `scripts/`: local smoke and validation helpers
+- `artifacts/`: generated local validation outputs such as smoke responses and test reports
 - `docs/`: architecture, release, rollback, and troubleshooting notes
 - `.github/workflows/`: CI and release automation
+- `.github/workflows/dev-validation.yml`: automatic validation entry workflow for the `dev` branch
+- `.github/workflows/protected-main-validation.yml`: manual-gated validation for the protected `main` branch
+- `.github/workflows/protected-prod-validation.yml`: manual-gated validation for the protected `prod` branch
+- `.github/PULL_REQUEST_TEMPLATE.md`: PR checklist with rollback notes
+- `.github/CODEOWNERS`: ownership guidance for review and release approval
+- `.pre-commit-config.yaml`: optional local hooks for lint and tests
 - `.env.dev.example`: local development environment example
 - `.env.main.example`: stable integration environment example
 - `.env.prod.example`: production-style environment example
@@ -88,6 +116,7 @@ Use [docs/troubleshooting.md](docs/troubleshooting.md) for common startup, readi
 - `pyproject.toml`: Ruff and pytest configuration
 - `CHEATSHEET.md`: quick command reference
 - `FILES_EXPLAINED.md`: file-by-file purpose reference
+- `SECURITY.md`: vulnerability handling and secret safety notes
 
 ## Required GitHub Branch Protections
 
@@ -95,4 +124,3 @@ Use [docs/troubleshooting.md](docs/troubleshooting.md) for common startup, readi
 - Require pull requests and passing status checks
 - Require rollback notes in promotion PRs
 - Configure `prod` environment approval in GitHub before using the release workflow
-- Configure a protected `main` environment if you want approval before main branch validation starts
