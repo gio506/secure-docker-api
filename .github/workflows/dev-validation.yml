@@ -17,17 +17,123 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate-dev:
-    uses: ./.github/workflows/pr-validation.yml
-    with:
-      environment_name: dev
-      env_file: .env.dev.example
-      python_version: "3.11"
-      app_env: "dev"
-      app_version: "0.1.0-dev"
-      trivy_severity: "CRITICAL,HIGH"
-      app_host: "0.0.0.0"
-      app_port: "8080"
-      gunicorn_workers: "2"
-      gunicorn_threads: "2"
-      gunicorn_timeout: "30"
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - name: Ruff lint
+        run: python -m ruff check .
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    needs: lint
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - name: Run tests
+        run: |
+          mkdir -p reports
+          python -m pytest --junitxml reports/pytest-report.xml
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pytest-report
+          path: reports/pytest-report.xml
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: |
+          docker build \
+            --build-arg BUILD_DATE="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+            --build-arg VCS_REF="${GITHUB_SHA}" \
+            --build-arg APP_ENV="dev" \
+            --build-arg APP_VERSION="0.1.0-dev" \
+            -t secure-docker-api:${{ github.sha }} .
+
+  container-smoke-tests:
+    runs-on: ubuntu-latest
+    needs: docker-build
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start stack
+        env:
+          APP_ENV: dev
+          APP_VERSION: 0.1.0-dev
+          APP_HOST: 0.0.0.0
+          APP_PORT: 8080
+          GUNICORN_WORKERS: 2
+          GUNICORN_THREADS: 2
+          GUNICORN_TIMEOUT: 30
+        run: docker compose --env-file .env.dev.example up --build -d
+      - name: Wait for container health
+        run: |
+          for i in {1..20}; do
+            status="$(docker inspect --format='{{json .State.Health.Status}}' secure-docker-api || true)"
+            if [ "$status" = '"healthy"' ]; then
+              exit 0
+            fi
+            sleep 3
+          done
+          docker compose logs
+          exit 1
+        shell: bash
+      - name: Smoke test endpoints
+        run: bash ./scripts/smoke-test.sh
+        shell: bash
+      - name: Upload smoke artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-artifacts
+          path: artifacts/smoke/
+      - name: Teardown
+        if: always()
+        run: docker compose down --remove-orphans
+
+  image-scan:
+    runs-on: ubuntu-latest
+    needs: container-smoke-tests
+    timeout-minutes: 20
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: |
+          docker build \
+            --build-arg BUILD_DATE="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+            --build-arg VCS_REF="${GITHUB_SHA}" \
+            --build-arg APP_ENV="dev" \
+            --build-arg APP_VERSION="0.1.0-dev" \
+            -t secure-docker-api:${{ github.sha }} .
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: secure-docker-api:${{ github.sha }}
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH

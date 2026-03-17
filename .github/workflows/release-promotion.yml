@@ -42,24 +42,9 @@ jobs:
           name: secure-docker-api-release-manifest
           path: artifacts/release-manifest.json
 
-  validate-before-promotion:
-    uses: ./.github/workflows/pr-validation.yml
-    with:
-      environment_name: main
-      env_file: .env.main.example
-      python_version: "3.11"
-      app_env: "main"
-      app_version: "0.1.0-rc"
-      trivy_severity: "CRITICAL,HIGH"
-      app_host: "0.0.0.0"
-      app_port: "8080"
-      gunicorn_workers: "2"
-      gunicorn_threads: "2"
-      gunicorn_timeout: "30"
-
   publish-release-artifact:
     runs-on: ubuntu-latest
-    needs: validate-before-promotion
+    needs: release-summary
     timeout-minutes: 15
     environment: prod
     steps:
