@@ -1,0 +1,29 @@
+# Files Explained
+
+- `.gitignore`: ignores virtualenvs, caches, and local artifacts.
+- `.dockerignore`: keeps non-runtime content out of the image build context.
+- `requirements.txt`: runtime dependencies for the API container.
+- `requirements-dev.txt`: local lint and test dependencies.
+- `pyproject.toml`: lint and test tool configuration.
+- `Makefile`: shortcuts for common validation and container tasks.
+- `Dockerfile`: multi-stage build with non-root runtime and healthcheck.
+- `docker-compose.yml`: starts the API locally and verifies container health.
+- `.env.dev.example`: sample dev environment variables.
+- `.env.main.example`: sample main environment variables.
+- `.env.prod.example`: sample prod environment variables.
+- `app/__init__.py`: package marker for the application.
+- `app/config.py`: loads environment-based runtime settings.
+- `app/main.py`: Flask app and HTTP endpoints.
+- `tests/conftest.py`: pytest fixture for the Flask test client.
+- `tests/test_api.py`: endpoint behavior tests.
+- `scripts/smoke-test.sh`: bash smoke test for the running API.
+- `scripts/smoke-test.ps1`: PowerShell smoke test for the running API.
+- `scripts/local-validate.sh`: local all-in-one validation helper.
+- `.github/workflows/pr-validation.yml`: PR pipeline for `dev` and `main`.
+- `.github/workflows/release-promotion.yml`: release workflow for `main` and protected `prod`.
+- `docs/architecture.md`: architecture and environment summary.
+- `docs/release-flow.md`: promotion model and GitHub settings guidance.
+- `docs/rollback.md`: rollback procedure and evidence checklist.
+- `docs/troubleshooting.md`: common failure scenarios and response steps.
+- `README.md`: main project guide, setup, validation, and repo map.
+- `CHEATSHEET.md`: quick commands for setup and validation.

@@ -1,0 +1,49 @@
+name: release-promotion
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  release-summary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build release notes snippet
+        run: |
+          {
+            echo "## Release promotion summary"
+            echo "- Source branch: main"
+            echo "- Target branch: prod"
+            echo "- Commit: $GITHUB_SHA"
+            echo "- Reminder: prod promotion requires manual approval and rollback notes."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  validate-before-promotion:
+    uses: ./.github/workflows/pr-validation.yml
+
+  publish-release-artifact:
+    runs-on: ubuntu-latest
+    needs: validate-before-promotion
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create artifact bundle
+        run: |
+          mkdir -p artifacts
+          tar -czf artifacts/secure-docker-api-${GITHUB_SHA}.tar.gz app Dockerfile docker-compose.yml requirements.txt
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: secure-docker-api-release
+          path: artifacts/
+
+  prod-approval-note:
+    runs-on: ubuntu-latest
+    needs: publish-release-artifact
+    environment: prod
+    steps:
+      - name: Manual promotion reminder
+        run: |
+          echo "Promotion to prod must be completed by PR from main to prod after approval."
