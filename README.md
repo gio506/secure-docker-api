@@ -97,6 +97,7 @@ See [docs/release-checklist.md](docs/release-checklist.md), [docs/production-pro
 - `.env.main.example`: stable integration environment example
 - `.env.prod.example`: production-style environment example
 - `Dockerfile`: multi-stage container build with non-root runtime
+- `gunicorn.conf.py`: Gunicorn runtime configuration based on environment variables
 - `docker-compose.yml`: local container startup and health validation
 - `Makefile`: common local commands for lint, test, build, run, and cleanup
 - `requirements.txt`: runtime Python dependencies
