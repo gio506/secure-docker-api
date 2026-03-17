@@ -44,6 +44,8 @@ RUN addgroup --system appgroup \
     && adduser --system --ingroup appgroup --home /app appuser \
     && apt-get update \
     && apt-get install -y --no-install-recommends curl \
+    && python -m pip uninstall -y pip setuptools wheel \
+    && rm -f /usr/local/bin/pip /usr/local/bin/pip3 /usr/local/bin/pip3.11 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /opt/venv /opt/venv
