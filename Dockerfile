@@ -1,3 +1,6 @@
+ARG BUILD_DATE=unknown
+ARG VCS_REF=local
+
 FROM python:3.11-slim AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -16,6 +19,9 @@ RUN python -m venv /opt/venv \
 
 FROM python:3.11-slim AS runtime
 
+ARG BUILD_DATE
+ARG VCS_REF
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:$PATH" \
@@ -23,7 +29,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     APP_PORT=8080 \
     APP_ENV=dev \
     APP_VERSION=0.1.0 \
-    READY_STATE=ready
+    READY_STATE=ready \
+    APP_COMMIT_SHA=local
+
+LABEL org.opencontainers.image.title="secure-docker-api" \
+      org.opencontainers.image.description="Secure Dockerized API with branch-based delivery flow" \
+      org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.revision="${VCS_REF}"
 
 WORKDIR /app
 

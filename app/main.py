@@ -32,6 +32,7 @@ def version() -> tuple[dict[str, str], int]:
                 "service": settings["app_name"],
                 "environment": settings["app_env"],
                 "version": settings["app_version"],
+                "commit_sha": settings["app_commit_sha"],
             }
         ),
         200,

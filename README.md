@@ -4,7 +4,7 @@ Secure Dockerized API with branch-based delivery flow, smoke tests, and image sc
 
 ## Overview
 
-`secure-docker-api` is a small Flask service built to demonstrate an intermediate DevOps workflow from a greenfield repository. The repo focuses on practical packaging, hardening, validation, and promotion through `dev`, `main`, and `prod`.
+`secure-docker-api` is a small Flask service built to demonstrate an intermediate DevOps workflow from a greenfield repository. The repo focuses on practical packaging, hardening, validation, and promotion through `dev`, `main`, and `prod`. The `dev` branch extends the stable baseline with stronger engineering checks and better day-to-day workflow support.
 
 ## Architecture
 
@@ -13,6 +13,7 @@ Secure Dockerized API with branch-based delivery flow, smoke tests, and image sc
 - Non-root runtime container
 - Docker Compose for local validation
 - GitHub Actions for PR validation and release promotion
+- Build metadata captured in image labels and `/version`
 
 See [docs/architecture.md](docs/architecture.md) for the detailed view.
 
@@ -31,6 +32,7 @@ Promotion path: `feature/* -> dev -> main -> prod`
 3. Run `python -m pytest` and `python -m ruff check .`.
 4. Build locally with `docker build -t secure-docker-api:local .`.
 5. Start the stack with `docker compose --env-file .env.dev.example up --build -d`.
+6. Use `./scripts/local-validate.sh` before opening PRs into `dev`.
 
 ## Validation Steps
 
@@ -43,7 +45,8 @@ Promotion path: `feature/* -> dev -> main -> prod`
    - `curl http://127.0.0.1:8080/ready`
    - `curl http://127.0.0.1:8080/version`
 6. Run smoke script: `./scripts/smoke-test.sh` or `powershell -File .\scripts\smoke-test.ps1`
-7. Stop the stack: `docker compose down --remove-orphans`
+7. Review generated validation artifacts under `artifacts/`
+8. Stop the stack: `docker compose down --remove-orphans`
 
 ## CI/CD Flow
 
@@ -57,6 +60,12 @@ PR validation on `dev` and `main` runs these stages:
 
 Promotion from `main` uses the release workflow to rerun validation, package a release artifact, and pause at the protected `prod` environment before the `main -> prod` PR merge.
 
+The `dev` branch additionally stores:
+
+- pytest XML reports
+- smoke test JSON responses
+- build metadata linked to the commit SHA
+
 ## Rollback
 
 Rollback is documented in [docs/rollback.md](docs/rollback.md). Minimum rollback practice for this repo:
@@ -69,13 +78,18 @@ Rollback is documented in [docs/rollback.md](docs/rollback.md). Minimum rollback
 
 Use [docs/troubleshooting.md](docs/troubleshooting.md) for common startup, readiness, and image scan failures.
 
+See [docs/developer-workflow.md](docs/developer-workflow.md) for the branch-specific engineering workflow on `dev`.
+
 ## Repo Map
 
 - `app/`: Flask application source and runtime config helpers
 - `tests/`: endpoint and behavior tests
 - `scripts/`: local smoke and validation helpers
+- `artifacts/`: generated local validation outputs such as smoke responses and test reports
 - `docs/`: architecture, release, rollback, and troubleshooting notes
 - `.github/workflows/`: CI and release automation
+- `.github/PULL_REQUEST_TEMPLATE.md`: PR checklist with rollback notes
+- `.pre-commit-config.yaml`: optional local hooks for lint and tests
 - `.env.dev.example`: local development environment example
 - `.env.main.example`: stable integration environment example
 - `.env.prod.example`: production-style environment example

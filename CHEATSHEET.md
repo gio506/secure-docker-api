@@ -19,6 +19,12 @@ docker compose --env-file .env.dev.example up --build -d
 docker compose down --remove-orphans
 ```
 
+## Full validation gate
+
+```bash
+./scripts/local-validate.sh
+```
+
 ## Windows smoke test
 
 ```powershell
@@ -34,6 +40,7 @@ make build
 make run
 make down
 make clean
+make validate
 ```
 
 ## Branch flow

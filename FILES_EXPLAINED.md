@@ -19,9 +19,13 @@
 - `scripts/smoke-test.sh`: bash smoke test for the running API.
 - `scripts/smoke-test.ps1`: PowerShell smoke test for the running API.
 - `scripts/local-validate.sh`: local all-in-one validation helper.
+- `scripts/validate-json.py`: validates smoke test response payload values.
 - `.github/workflows/pr-validation.yml`: PR pipeline for `dev` and `main`.
 - `.github/workflows/release-promotion.yml`: release workflow for `main` and protected `prod`.
+- `.github/PULL_REQUEST_TEMPLATE.md`: PR structure with validation and rollback notes.
+- `.pre-commit-config.yaml`: optional local hooks for lint and tests.
 - `docs/architecture.md`: architecture and environment summary.
+- `docs/developer-workflow.md`: daily branch workflow and validation expectations.
 - `docs/release-flow.md`: promotion model and GitHub settings guidance.
 - `docs/rollback.md`: rollback procedure and evidence checklist.
 - `docs/troubleshooting.md`: common failure scenarios and response steps.

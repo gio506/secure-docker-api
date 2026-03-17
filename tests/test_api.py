@@ -31,6 +31,7 @@ def test_ready_endpoint_when_not_ready(client, monkeypatch):
 def test_version_endpoint_returns_env_and_version(client, monkeypatch):
     monkeypatch.setenv("APP_ENV", "main")
     monkeypatch.setenv("APP_VERSION", "1.2.3")
+    monkeypatch.setenv("APP_COMMIT_SHA", "abc1234")
 
     response = client.get("/version")
     payload = response.get_json()
@@ -39,6 +40,7 @@ def test_version_endpoint_returns_env_and_version(client, monkeypatch):
     assert payload["environment"] == "main"
     assert payload["version"] == "1.2.3"
     assert payload["service"] == "secure-docker-api"
+    assert payload["commit_sha"] == "abc1234"
 
 
 def test_default_env_is_dev(client):
@@ -50,3 +52,4 @@ def test_default_env_is_dev(client):
 
     assert payload["environment"] == "dev"
     assert payload["version"] == "0.1.0"
+    assert payload["commit_sha"] == "local"
