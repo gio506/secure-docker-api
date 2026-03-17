@@ -31,3 +31,12 @@ jobs:
     with:
       environment_name: prod
       env_file: .env.prod.example
+      python_version: ${{ vars.PYTHON_VERSION || '3.11' }}
+      app_env: ${{ vars.APP_ENV || 'prod' }}
+      app_version: ${{ vars.APP_VERSION || '0.1.0' }}
+      trivy_severity: ${{ vars.TRIVY_SEVERITY || 'CRITICAL,HIGH' }}
+      app_host: ${{ vars.APP_HOST || '0.0.0.0' }}
+      app_port: ${{ vars.APP_PORT || '8080' }}
+      gunicorn_workers: ${{ vars.GUNICORN_WORKERS || '2' }}
+      gunicorn_threads: ${{ vars.GUNICORN_THREADS || '2' }}
+      gunicorn_timeout: ${{ vars.GUNICORN_TIMEOUT || '30' }}
