@@ -117,7 +117,6 @@ jobs:
     needs: container-smoke-tests
     timeout-minutes: 20
     permissions:
-      security-events: write
       contents: read
     steps:
       - uses: actions/checkout@v4
@@ -130,10 +129,8 @@ jobs:
             --build-arg APP_VERSION="0.1.0-dev" \
             -t secure-docker-api:${{ github.sha }} .
       - name: Trivy image scan
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: secure-docker-api:${{ github.sha }}
-          format: table
-          exit-code: "1"
-          ignore-unfixed: true
-          severity: CRITICAL,HIGH
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.56.1 \
+            image --exit-code 1 --ignore-unfixed --severity CRITICAL,HIGH secure-docker-api:${{ github.sha }}
