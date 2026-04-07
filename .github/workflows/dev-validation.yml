@@ -139,7 +139,7 @@ jobs:
             --build-arg APP_VERSION="0.1.0-dev" \
             -t secure-docker-api:${{ github.sha }} .
       - name: Trivy image scan
-        uses: aquasecurity/trivy-action@0.31.0
+        uses: aquasecurity/trivy-action@0.30.0
         with:
           image-ref: secure-docker-api:${{ github.sha }}
           format: table
