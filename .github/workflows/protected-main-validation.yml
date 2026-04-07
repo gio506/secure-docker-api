@@ -14,20 +14,11 @@ permissions:
 
 concurrency:
   group: secure-docker-api-main-protected-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
-  approval-gate:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    environment: main
-    steps:
-      - name: Protected branch approval
-        run: echo "Main validation approved. Starting protected checks."
-
   lint:
     runs-on: ubuntu-latest
-    needs: approval-gate
     timeout-minutes: 10
     environment: main
     steps:
@@ -35,12 +26,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
       - name: Ruff lint
         run: python -m ruff check .
+      - name: Ruff format check
+        run: python -m ruff format --check .
 
   unit-tests:
     runs-on: ubuntu-latest
@@ -52,6 +46,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -59,7 +54,14 @@ jobs:
       - name: Run tests
         run: |
           mkdir -p reports
-          python -m pytest --junitxml reports/pytest-report.xml
+          python -m pytest --junitxml reports/pytest-report.xml --tb=short -q
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pytest-report-main
+          path: reports/pytest-report.xml
+          retention-days: 7
 
   docker-build:
     runs-on: ubuntu-latest
@@ -68,6 +70,8 @@ jobs:
     environment: main
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Build image
         run: |
           docker build \
@@ -111,7 +115,7 @@ jobs:
         shell: bash
       - name: Teardown
         if: always()
-        run: docker compose down --remove-orphans
+        run: docker compose down --remove-orphans --volumes
 
   image-scan:
     runs-on: ubuntu-latest
@@ -120,9 +124,10 @@ jobs:
     environment: main
     permissions:
       contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v4
-      - name: Build image
+      - name: Build image for scanning
         run: |
           docker build \
             --build-arg BUILD_DATE="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
@@ -131,8 +136,10 @@ jobs:
             --build-arg APP_VERSION="0.1.0-rc" \
             -t secure-docker-api:${{ github.sha }} .
       - name: Trivy image scan
-        run: |
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            aquasec/trivy:0.56.1 \
-            image --exit-code 1 --ignore-unfixed --severity CRITICAL,HIGH secure-docker-api:${{ github.sha }}
+        uses: aquasecurity/trivy-action@0.31.0
+        with:
+          image-ref: secure-docker-api:${{ github.sha }}
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
